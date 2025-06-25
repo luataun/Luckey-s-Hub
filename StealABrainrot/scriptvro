@@ -580,7 +580,7 @@ local Button = Tab:CreateButton({
 })
 
 local Button = Tab:CreateButton({
-	Name = "Find a server with a Secret Brainrot",
+	Name = "Find a server with a SECRET Brainrot!",
 	Callback = function()
 		local Players = game:GetService("Players")
 		local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -636,7 +636,6 @@ local Button = Tab:CreateButton({
 				return
 			end
 
-			-- Shuffle list
 			for i = #servers, 2, -1 do
 				local j = math.random(i)
 				servers[i], servers[j] = servers[j], servers[i]
@@ -669,6 +668,9 @@ local Button = Tab:CreateButton({
 				pcall(function()
 					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
 				end)
+				-- Clear teleport queue to stop loading in other games
+				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+				if queue then queue("") end
 				return
 			end
 
@@ -676,90 +678,7 @@ local Button = Tab:CreateButton({
 
 			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
 			if queue then
-				queue([[
-					local Players = game:GetService("Players")
-					local ReplicatedStorage = game:GetService("ReplicatedStorage")
-					local HttpService = game:GetService("HttpService")
-					local TeleportService = game:GetService("TeleportService")
-					local Workspace = game:GetService("Workspace")
-					local StarterGui = game:GetService("StarterGui")
-
-					local PlaceId = game.PlaceId
-					local JobId = game.JobId
-					local localPlayer = Players.LocalPlayer
-					local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
-
-					local function notify(title, text)
-						pcall(function()
-							StarterGui:SetCore("SendNotification", {
-								Title = title,
-								Text = text,
-								Duration = 5
-							})
-						end)
-					end
-
-					local function hasSecret()
-						for _, v in ipairs(Workspace:GetChildren()) do
-							local d = animalData[v.Name]
-							if d and d.Rarity == "Secret" then
-								return true
-							end
-						end
-						return false
-					end
-
-					local function findServers()
-						local success, response = pcall(function()
-							return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"))
-						end)
-						local servers = {}
-						if success and response and response.data then
-							for _, v in ipairs(response.data) do
-								if v.id ~= JobId and v.playing < v.maxPlayers then
-									table.insert(servers, v.id)
-								end
-							end
-						end
-						return servers
-					end
-
-					local function hopToNextAvailableServer()
-						local servers = findServers()
-						if #servers == 0 then
-							warn("No available servers.")
-							return
-						end
-
-						for i = #servers, 2, -1 do
-							local j = math.random(i)
-							servers[i], servers[j] = servers[j], servers[i]
-						end
-
-						for _, serverId in ipairs(servers) do
-							local worked, err = pcall(function()
-								TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
-							end)
-							if worked then break else warn("Teleport failed:", err) task.wait(1) end
-						end
-					end
-
-					if hasSecret() then
-						if not localPlayer.Character then localPlayer.CharacterAdded:Wait() end
-						notify("Secret Found!", "A secret pet is present in this server!")
-						print("✅ Secret found! Running your loadstring script.")
-						pcall(function()
-							loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
-						end)
-					else
-						print("❌ No secret found. Queueing next hop...")
-						local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-						if queue then
-							queue(debug.getinfo(1,'S').source)
-						end
-						hopToNextAvailableServer()
-					end
-				]])
+				queue("loadstring(game:HttpGet('https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro'))()")
 			end
 
 			hopToNextAvailableServer()
