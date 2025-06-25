@@ -579,120 +579,115 @@ local Button = Tab:CreateButton({
 	end,
 })
 
+-- 🔁 Secret Brainrot Hop Function
+function SecretBrainrotHop()
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local HttpService = game:GetService("HttpService")
+	local TeleportService = game:GetService("TeleportService")
+	local Workspace = game:GetService("Workspace")
+	local StarterGui = game:GetService("StarterGui")
+
+	local PlaceId = game.PlaceId
+	local JobId = game.JobId
+	local localPlayer = Players.LocalPlayer
+	local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
+
+	local function notify(title, text)
+		pcall(function()
+			StarterGui:SetCore("SendNotification", {
+				Title = title,
+				Text = text,
+				Duration = 4
+			})
+		end)
+	end
+
+	local function hasSecret()
+		for _, v in ipairs(Workspace:GetChildren()) do
+			local d = animalData[v.Name]
+			if d and d.Rarity == "Secret" then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function findServers()
+		local servers = {}
+		local cursor = ""
+		for _ = 1, 5 do
+			local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true" .. (cursor ~= "" and "&cursor=" .. cursor or "")
+			local success, response = pcall(function()
+				return HttpService:JSONDecode(game:HttpGet(url))
+			end)
+			if success and response and response.data then
+				for _, v in ipairs(response.data) do
+					if v.id ~= JobId and tonumber(v.playing) < tonumber(v.maxPlayers) then
+						table.insert(servers, v.id)
+					end
+				end
+				if not response.nextPageCursor then break end
+				cursor = response.nextPageCursor
+			else
+				break
+			end
+		end
+		return servers
+	end
+
+	local function queueSelf()
+		local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+		if queue then
+			queue("SecretBrainrotHop()")
+		end
+	end
+
+	local function hopToNextAvailableServer()
+		local servers = findServers()
+		if #servers == 0 then
+			notify("Error", "No servers found. Retrying...")
+			task.wait(5)
+			return hopToNextAvailableServer()
+		end
+
+		for i = #servers, 2, -1 do
+			local j = math.random(i)
+			servers[i], servers[j] = servers[j], servers[i]
+		end
+
+		for _, serverId in ipairs(servers) do
+			local success = pcall(function()
+				TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
+			end)
+			if success then return end
+			task.wait(1)
+		end
+
+		notify("Teleport Failed", "Retrying...")
+		task.wait(3)
+		hopToNextAvailableServer()
+	end
+
+	task.spawn(function()
+		task.wait(1.5)
+		if hasSecret() then
+			notify("✅ Secret Found!", "You're in a secret brainrot server!")
+			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+			if queue then queue("") end -- Clear queue to stop looping
+		else
+			notify("❌ No Secret", "Hopping to next server...")
+			queueSelf()
+			hopToNextAvailableServer()
+		end
+	end)
+end
+
+-- ✅ UI Button
 local Button = Tab:CreateButton({
 	Name = "Find a server with a SECRET Brainrot!",
 	Callback = function()
-		local Players = game:GetService("Players")
-		local ReplicatedStorage = game:GetService("ReplicatedStorage")
-		local HttpService = game:GetService("HttpService")
-		local TeleportService = game:GetService("TeleportService")
-		local Workspace = game:GetService("Workspace")
-		local StarterGui = game:GetService("StarterGui")
-
-		local PlaceId = game.PlaceId
-		local JobId = game.JobId
-		local localPlayer = Players.LocalPlayer
-		local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
-
-		local function notify(title, text)
-			pcall(function()
-				StarterGui:SetCore("SendNotification", {
-					Title = title,
-					Text = text,
-					Duration = 4
-				})
-			end)
-		end
-
-		local function hasSecret()
-			for _, v in ipairs(Workspace:GetChildren()) do
-				local d = animalData[v.Name]
-				if d and d.Rarity == "Secret" then
-					return true
-				end
-			end
-			return false
-		end
-
-		local function findServers()
-			local servers = {}
-			local cursor = ""
-			for _ = 1, 5 do
-				local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true" .. (cursor ~= "" and "&cursor=" .. cursor or "")
-				local success, response = pcall(function()
-					return HttpService:JSONDecode(game:HttpGet(url))
-				end)
-				if success and response and response.data then
-					for _, v in ipairs(response.data) do
-						if v.id ~= JobId and tonumber(v.playing) < tonumber(v.maxPlayers) then
-							table.insert(servers, v.id)
-						end
-					end
-					if not response.nextPageCursor then break end
-					cursor = response.nextPageCursor
-				else
-					break
-				end
-			end
-			return servers
-		end
-
-		local function queueSelf()
-			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-			if queue then
-				queue("loadstring(game:HttpGet('https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro'))()")
-			end
-		end
-
-		local function hopToNextAvailableServer()
-			local servers = findServers()
-			if #servers == 0 then
-				notify("Error", "No servers found. Retrying in 5s...")
-				task.wait(5)
-				return hopToNextAvailableServer()
-			end
-
-			for i = #servers, 2, -1 do
-				local j = math.random(i)
-				servers[i], servers[j] = servers[j], servers[i]
-			end
-
-			for _, serverId in ipairs(servers) do
-				local worked, err = pcall(function()
-					TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
-				end)
-				if worked then
-					return
-				else
-					warn("Teleport failed to server:", serverId, err)
-					task.wait(1)
-				end
-			end
-
-			notify("Teleport Failed", "All teleport attempts failed. Retrying...")
-			task.wait(3)
-			hopToNextAvailableServer()
-		end
-
-		local function runHopLoop()
-			if hasSecret() then
-				notify("✅ Secret Found!", "A secret pet is in this server!")
-
-				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-				if queue then queue("") end -- clear any future auto-runs
-
-				pcall(function()
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
-				end)
-			else
-				notify("No Secret", "Searching other servers...")
-				queueSelf()
-				hopToNextAvailableServer()
-			end
-		end
-
-		-- Start the auto hop loop
-		task.delay(1.5, runHopLoop)
+		SecretBrainrotHop()
 	end,
 })
 
