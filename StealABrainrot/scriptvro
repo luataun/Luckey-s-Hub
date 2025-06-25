@@ -599,7 +599,7 @@ local Button = Tab:CreateButton({
 				StarterGui:SetCore("SendNotification", {
 					Title = title,
 					Text = text,
-					Duration = 5
+					Duration = 4
 				})
 			end)
 		end
@@ -637,11 +637,19 @@ local Button = Tab:CreateButton({
 			return servers
 		end
 
+		local function queueSelf()
+			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+			if queue then
+				queue("loadstring(game:HttpGet('https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro'))()")
+			end
+		end
+
 		local function hopToNextAvailableServer()
 			local servers = findServers()
 			if #servers == 0 then
-				notify("Error", "No available servers found.")
-				return
+				notify("Error", "No servers found. Retrying in 5s...")
+				task.wait(5)
+				return hopToNextAvailableServer()
 			end
 
 			for i = #servers, 2, -1 do
@@ -649,55 +657,42 @@ local Button = Tab:CreateButton({
 				servers[i], servers[j] = servers[j], servers[i]
 			end
 
-			local success = false
 			for _, serverId in ipairs(servers) do
 				local worked, err = pcall(function()
 					TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
 				end)
 				if worked then
-					success = true
-					break
+					return
 				else
 					warn("Teleport failed to server:", serverId, err)
 					task.wait(1)
 				end
 			end
 
-			if not success then
-				notify("Teleport Failed", "All teleport attempts failed.")
-			end
+			notify("Teleport Failed", "All teleport attempts failed. Retrying...")
+			task.wait(3)
+			hopToNextAvailableServer()
 		end
 
-		local function runHopLogic()
+		local function runHopLoop()
 			if hasSecret() then
-				if not localPlayer.Character then localPlayer.CharacterAdded:Wait() end
-				notify("Secret Found!", "A secret pet is present in this server!")
+				notify("✅ Secret Found!", "A secret pet is in this server!")
 
-				-- Clear queue BEFORE executing to prevent double execution
 				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-				if queue then queue("") end
+				if queue then queue("") end -- clear any future auto-runs
 
 				pcall(function()
 					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
 				end)
-				return
+			else
+				notify("No Secret", "Searching other servers...")
+				queueSelf()
+				hopToNextAvailableServer()
 			end
-
-			print("❌ No secret found. Queueing next hop...")
-
-			-- Queue this logic again for the next server
-			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-			if queue then
-				queue("loadstring(game:HttpGet('https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro'))()")
-			end
-
-			hopToNextAvailableServer()
 		end
 
-		-- Delay to ensure fully loaded (sometimes teleport fires too early)
-		task.delay(1.5, function()
-			runHopLogic()
-		end)
+		-- Start the auto hop loop
+		task.delay(1.5, runHopLoop)
 	end,
 })
 
