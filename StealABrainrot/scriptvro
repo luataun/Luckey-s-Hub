@@ -580,7 +580,7 @@ local Button = Tab:CreateButton({
 })
 
 local Button = Tab:CreateButton({
-	Name = "Secret Server Hop + Loadstring on Found",
+	Name = "Find a server with a Secret Brainrot",
 	Callback = function()
 		local Players = game:GetService("Players")
 		local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -589,10 +589,10 @@ local Button = Tab:CreateButton({
 		local Workspace = game:GetService("Workspace")
 		local StarterGui = game:GetService("StarterGui")
 
-		local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
 		local PlaceId = game.PlaceId
 		local JobId = game.JobId
 		local localPlayer = Players.LocalPlayer
+		local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
 
 		local function notify(title, text)
 			pcall(function()
@@ -629,124 +629,146 @@ local Button = Tab:CreateButton({
 			return servers
 		end
 
-		local function runHopLogic()
-			if hasSecret() then
-				if localPlayer and localPlayer.Character == nil then
-					localPlayer.CharacterAdded:Wait()
-				end
-				notify("Secret Found!", "A secret pet is present in this server! Running your script...")
-				print("✅ Secret found! Running loadstring script.")
-
-				-- Replace YOUR_URL_HERE with your actual distraction removal script URL
-				local success, err = pcall(function()
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
-				end)
-				if not success then
-					warn("Failed to run loadstring script:", err)
-				end
-
+		local function hopToNextAvailableServer()
+			local servers = findServers()
+			if #servers == 0 then
+				warn("No available servers.")
 				return
 			end
 
-			print("❌ No secret found, hopping to another server...")
+			-- Shuffle list
+			for i = #servers, 2, -1 do
+				local j = math.random(i)
+				servers[i], servers[j] = servers[j], servers[i]
+			end
+
+			local success = false
+			for _, serverId in ipairs(servers) do
+				local worked, err = pcall(function()
+					TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
+				end)
+				if worked then
+					success = true
+					break
+				else
+					warn("Teleport failed:", err)
+					task.wait(1)
+				end
+			end
+
+			if not success then
+				warn("All server teleport attempts failed.")
+			end
+		end
+
+		local function runHopLogic()
+			if hasSecret() then
+				if not localPlayer.Character then localPlayer.CharacterAdded:Wait() end
+				notify("Secret Found!", "A secret pet is present in this server!")
+				print("✅ Secret found! Running your loadstring script.")
+				pcall(function()
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
+				end)
+				return
+			end
+
+			print("❌ No secret found. Queueing next hop...")
 
 			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
 			if queue then
 				queue([[
-                    local Players = game:GetService("Players")
-                    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-                    local HttpService = game:GetService("HttpService")
-                    local TeleportService = game:GetService("TeleportService")
-                    local Workspace = game:GetService("Workspace")
-                    local StarterGui = game:GetService("StarterGui")
+					local Players = game:GetService("Players")
+					local ReplicatedStorage = game:GetService("ReplicatedStorage")
+					local HttpService = game:GetService("HttpService")
+					local TeleportService = game:GetService("TeleportService")
+					local Workspace = game:GetService("Workspace")
+					local StarterGui = game:GetService("StarterGui")
 
-                    local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
-                    local PlaceId = game.PlaceId
-                    local JobId = game.JobId
-                    local localPlayer = Players.LocalPlayer
+					local PlaceId = game.PlaceId
+					local JobId = game.JobId
+					local localPlayer = Players.LocalPlayer
+					local animalData = require(ReplicatedStorage:WaitForChild("Datas"):WaitForChild("Animals"))
 
-                    local function notify(title, text)
-                        pcall(function()
-                            StarterGui:SetCore("SendNotification", {
-                                Title = title,
-                                Text = text,
-                                Duration = 5
-                            })
-                        end)
-                    end
+					local function notify(title, text)
+						pcall(function()
+							StarterGui:SetCore("SendNotification", {
+								Title = title,
+								Text = text,
+								Duration = 5
+							})
+						end)
+					end
 
-                    local function hasSecret()
-                        for _, v in ipairs(Workspace:GetChildren()) do
-                            local d = animalData[v.Name]
-                            if d and d.Rarity == "Secret" then
-                                return true
-                            end
-                        end
-                        return false
-                    end
+					local function hasSecret()
+						for _, v in ipairs(Workspace:GetChildren()) do
+							local d = animalData[v.Name]
+							if d and d.Rarity == "Secret" then
+								return true
+							end
+						end
+						return false
+					end
 
-                    local function findServers()
-                        local success, response = pcall(function()
-                            return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"))
-                        end)
-                        local servers = {}
-                        if success and response and response.data then
-                            for _, v in ipairs(response.data) do
-                                if v.id ~= JobId and v.playing < v.maxPlayers then
-                                    table.insert(servers, v.id)
-                                end
-                            end
-                        end
-                        return servers
-                    end
+					local function findServers()
+						local success, response = pcall(function()
+							return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"))
+						end)
+						local servers = {}
+						if success and response and response.data then
+							for _, v in ipairs(response.data) do
+								if v.id ~= JobId and v.playing < v.maxPlayers then
+									table.insert(servers, v.id)
+								end
+							end
+						end
+						return servers
+					end
 
-                    local function runHopLogic()
-                        if hasSecret() then
-                            if localPlayer and localPlayer.Character == nil then
-                                localPlayer.CharacterAdded:Wait()
-                            end
-                            notify("Secret Found!", "A secret pet is present in this server! Running your script...")
-                            print("✅ Secret found! Running loadstring script.")
+					local function hopToNextAvailableServer()
+						local servers = findServers()
+						if #servers == 0 then
+							warn("No available servers.")
+							return
+						end
 
-                            local success, err = pcall(function()
-                                loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
-                            end)
-                            if not success then
-                                warn("Failed to run loadstring script:", err)
-                            end
-                            return
-                        end
+						for i = #servers, 2, -1 do
+							local j = math.random(i)
+							servers[i], servers[j] = servers[j], servers[i]
+						end
 
-                        print("❌ No secret found, hopping to another server...")
+						for _, serverId in ipairs(servers) do
+							local worked, err = pcall(function()
+								TeleportService:TeleportToPlaceInstance(PlaceId, serverId, localPlayer)
+							end)
+							if worked then break else warn("Teleport failed:", err) task.wait(1) end
+						end
+					end
 
-                        local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-                        if queue then
-                            queue(debug.getinfo(1,'S').source)
-                        end
-
-                        local servers = findServers()
-                        if #servers > 0 then
-                            TeleportService:TeleportToPlaceInstance(PlaceId, servers[math.random(1, #servers)], Players.LocalPlayer)
-                        else
-                            warn("No servers found.")
-                        end
-                    end
-
-                    runHopLogic()
-                ]])
+					if hasSecret() then
+						if not localPlayer.Character then localPlayer.CharacterAdded:Wait() end
+						notify("Secret Found!", "A secret pet is present in this server!")
+						print("✅ Secret found! Running your loadstring script.")
+						pcall(function()
+							loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
+						end)
+					else
+						print("❌ No secret found. Queueing next hop...")
+						local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+						if queue then
+							queue(debug.getinfo(1,'S').source)
+						end
+						hopToNextAvailableServer()
+					end
+				]])
 			end
 
-			local servers = findServers()
-			if #servers > 0 then
-				TeleportService:TeleportToPlaceInstance(PlaceId, servers[math.random(1, #servers)], Players.LocalPlayer)
-			else
-				warn("No available servers.")
-			end
+			hopToNextAvailableServer()
 		end
 
 		runHopLogic()
 	end,
 })
+
 
 local Toggle = Tab:CreateToggle({
 	Name = "Speed Boost",
