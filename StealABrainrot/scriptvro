@@ -615,16 +615,23 @@ local Button = Tab:CreateButton({
 		end
 
 		local function findServers()
-			local success, response = pcall(function()
-				return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"))
-			end)
-
 			local servers = {}
-			if success and response and response.data then
-				for _, v in ipairs(response.data) do
-					if v.id ~= JobId and type(v.playing) == "number" and type(v.maxPlayers) == "number" and v.playing < v.maxPlayers then
-						table.insert(servers, v.id)
+			local cursor = ""
+			for _ = 1, 5 do
+				local url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true" .. (cursor ~= "" and "&cursor=" .. cursor or "")
+				local success, response = pcall(function()
+					return HttpService:JSONDecode(game:HttpGet(url))
+				end)
+				if success and response and response.data then
+					for _, v in ipairs(response.data) do
+						if v.id ~= JobId and tonumber(v.playing) < tonumber(v.maxPlayers) then
+							table.insert(servers, v.id)
+						end
 					end
+					if not response.nextPageCursor then break end
+					cursor = response.nextPageCursor
+				else
+					break
 				end
 			end
 			return servers
@@ -633,7 +640,7 @@ local Button = Tab:CreateButton({
 		local function hopToNextAvailableServer()
 			local servers = findServers()
 			if #servers == 0 then
-				warn("No available servers.")
+				notify("Error", "No available servers found.")
 				return
 			end
 
@@ -651,13 +658,13 @@ local Button = Tab:CreateButton({
 					success = true
 					break
 				else
-					warn("Teleport failed:", err)
+					warn("Teleport failed to server:", serverId, err)
 					task.wait(1)
 				end
 			end
 
 			if not success then
-				warn("All server teleport attempts failed.")
+				notify("Teleport Failed", "All teleport attempts failed.")
 			end
 		end
 
@@ -665,18 +672,20 @@ local Button = Tab:CreateButton({
 			if hasSecret() then
 				if not localPlayer.Character then localPlayer.CharacterAdded:Wait() end
 				notify("Secret Found!", "A secret pet is present in this server!")
-				print("✅ Secret found! Running your loadstring script.")
+
+				-- Clear queue BEFORE executing to prevent double execution
+				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
+				if queue then queue("") end
+
 				pcall(function()
 					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
 				end)
-
-				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-				if queue then queue("") end -- Clear queue so it doesn't run in other games
 				return
 			end
 
 			print("❌ No secret found. Queueing next hop...")
 
+			-- Queue this logic again for the next server
 			local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
 			if queue then
 				queue("loadstring(game:HttpGet('https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro'))()")
@@ -685,9 +694,13 @@ local Button = Tab:CreateButton({
 			hopToNextAvailableServer()
 		end
 
-		runHopLogic()
+		-- Delay to ensure fully loaded (sometimes teleport fires too early)
+		task.delay(1.5, function()
+			runHopLogic()
+		end)
 	end,
 })
+
 
 
 local Toggle = Tab:CreateToggle({
