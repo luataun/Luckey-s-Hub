@@ -618,10 +618,11 @@ local Button = Tab:CreateButton({
 			local success, response = pcall(function()
 				return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"))
 			end)
+
 			local servers = {}
 			if success and response and response.data then
 				for _, v in ipairs(response.data) do
-					if v.id ~= JobId and v.playing < v.maxPlayers then
+					if v.id ~= JobId and type(v.playing) == "number" and type(v.maxPlayers) == "number" and v.playing < v.maxPlayers then
 						table.insert(servers, v.id)
 					end
 				end
@@ -668,9 +669,9 @@ local Button = Tab:CreateButton({
 				pcall(function()
 					loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/scriptvro"))()
 				end)
-				-- Clear teleport queue to stop loading in other games
+
 				local queue = queue_on_teleport or (syn and syn.queue_on_teleport)
-				if queue then queue("") end
+				if queue then queue("") end -- Clear queue so it doesn't run in other games
 				return
 			end
 
