@@ -1,0 +1,663 @@
+	-- CYBR MADE THIS SHIT
+local cloneFlag = {}
+
+function p(o)
+    o.Enabled = false
+end
+
+if game.PlaceId == 109983668079237 then
+game.DescendantAdded:Connect(function(obj)
+    if obj:IsA("LocalScript") then
+        if not cloneFlag[obj] then
+            if obj.Name == "LocalScript  " then
+                print("ez bypass")
+                task.spawn(p, obj)
+            end
+            cloneFlag[obj] = true
+            
+        end
+    end
+end)
+end
+
+task.wait(1)
+--[[
+Tutorial on how to set up the loading screen
+
+1. Change the value of ImageId to the image asset ID you want to display when the loading screen starts up.
+
+2. Change BackgroundColor to your desired RGB value as a string (ex: "255, 0, 13").
+
+3. Customize the loading screen duration by editing LoadingScreenTime.
+
+4. Do not modify the logic below unless you know what you're doing.
+]]
+
+-- No CoreGui if testing in studio/live, only exploits.
+
+local ImageId = 15602019048
+local BackgroundColor = "255, 255, 255"
+local LoadingScreenTime = 5
+
+-- Warning: Do not edit below if you don't know what you're doing.
+
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+math.randomseed(tick())
+
+local function RandomString(length)
+	length = length or 16
+	local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	local result = {}
+
+	for i = 1, length do
+		local randIndex = math.random(1, #chars)
+		table.insert(result, chars:sub(randIndex, randIndex))
+	end
+
+	return table.concat(result)
+end
+
+local function Animator(Self, Info, Property)
+	Info = Info or TweenInfo.new(0.25)
+	local Tween = TweenService:Create(Self, Info, Property)
+	Tween:Play()
+	return Tween
+end
+
+local function LoadingScreen(IconId, Duration, BackgroundColor)
+	local Luataun = Instance.new("ScreenGui")
+	local SoundService = game:GetService("SoundService")
+
+	local StartupSound = Instance.new("Sound")
+	StartupSound.SoundId = "rbxassetid://6963676402"
+	StartupSound.Volume = 1
+	StartupSound.Parent = SoundService
+
+	StartupSound.TimePosition = 1.85
+	StartupSound.PlaybackSpeed = 0.9
+
+	Luataun.Name = "LoadingScreen"
+	Luataun.Parent = CoreGui
+	Luataun.Enabled = true
+	Luataun.ResetOnSpawn = false
+	Luataun.IgnoreGuiInset = true
+	Luataun.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+	local Loader = Instance.new("Frame")
+	local Icon = Instance.new("ImageLabel")
+	local Vignette = Instance.new("ImageLabel")
+
+	Loader.Name = RandomString()
+	Loader.Parent = Luataun
+	Loader.AnchorPoint = Vector2.new(0.5, 0.5)
+	Loader.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Loader.BackgroundTransparency = 1
+	Loader.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Loader.BorderSizePixel = 0
+	Loader.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Loader.Size = UDim2.new(1, 0, 1, 0)
+
+	Icon.Name = RandomString()
+	Icon.Parent = Loader
+	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	Icon.BackgroundTransparency = 1
+	Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Icon.BorderSizePixel = 0
+	Icon.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Icon.Size = UDim2.new(0, 750, 0, 750)
+	Icon.ZIndex = 100
+	Icon.Image = IconId or "rbxassetid://120245531583106"
+	Icon.ImageTransparency = 1
+   -- Icon.ImageColor3 = Color3.fromRGB(192, 255, 46)
+
+	Vignette.Name = RandomString()
+	Vignette.Parent = Loader
+	Vignette.BackgroundTransparency = 1
+	Vignette.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	Vignette.BorderSizePixel = 0
+	Vignette.Size = UDim2.new(1, 0, 1, 0)
+	Vignette.Image = "rbxassetid://18720640102"
+	Vignette.ImageColor3 = BackgroundColor
+	Vignette.ImageTransparency = 1
+	Vignette.AnchorPoint = Vector2.new(0.5, 0.5)
+	Vignette.Position = UDim2.fromScale(0.5, 0.5)
+
+	Animator(Loader, TweenInfo.new(0.55, Enum.EasingStyle.Quint), {
+		BackgroundTransparency = 0.5,
+	})
+
+	local Event = Instance.new("BindableEvent")
+
+	task.delay(0.5, function()
+		Animator(Icon, TweenInfo.new(0.75, Enum.EasingStyle.Quint), {
+			ImageTransparency = 0.01,
+			Size = UDim2.new(0, 200, 0, 200),
+                            	StartupSound:Play()
+		})
+
+		task.delay(0.25, function()
+			Animator(Vignette, TweenInfo.new(5), {
+				ImageTransparency = 0.2,
+
+			})
+
+
+				task.delay(1.5, function()
+				StartupSound:Destroy()
+		
+
+			Animator(Vignette, TweenInfo.new(3, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {
+				Size = UDim2.new(2, 0, 2, 0),
+			})
+
+			Animator(Icon, TweenInfo.new(0.75, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {
+				ImageTransparency = 1,
+			})
+
+			Animator(Loader, TweenInfo.new(1.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {
+				BackgroundTransparency = 1,
+			})
+
+			task.delay(0.1, function()
+				Animator(Vignette, TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {
+					ImageTransparency = 1,
+				})
+
+				task.wait(0.2)
+
+				task.delay(3, function()
+					Luataun:Destroy()
+				end)
+			end)
+
+			task.delay(0.6, function()
+				Event:Fire()
+			end)
+			end)
+			end)
+	end)
+
+	return {
+		yield = function()
+			return Event.Event:Wait()
+		end,
+	}
+end
+
+local function trim(s)
+	return s:match("^%s*(.-)%s*$")
+end
+
+local rgb = string.split(BackgroundColor, ",")
+
+local r = tonumber(trim(rgb[1])) or 0
+local g = tonumber(trim(rgb[2])) or 0
+local b = tonumber(trim(rgb[3])) or 0
+
+local BackgroundColorRGB = Color3.fromRGB(r, g, b)
+
+LoadingScreen("rbxassetid://" .. ImageId, LoadingScreenTime, BackgroundColorRGB):yield()
+
+
+
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Luckey Hub ",
+    SubTitle = "Steal a Brainrot",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Light",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+--Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Character", Icon = "person-standing" }),
+    Stealing = Window:AddTab({ Title = "Stealing", Icon = "skull" }),
+    Brainrots = Window:AddTab({ Title = "Brainrots", Icon = "paw-print" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+do
+    Fluent:Notify({
+        Title = "Notification",
+        Content = "Luckey's Hub has loaded.",
+        SubContent = "Game: Steal a Brainrot",
+        Duration = 5
+    })
+
+
+
+
+    Tabs.Stealing:AddButton({
+        Title = "Fly To Your Base",
+        Description = "When stealing and button toggle is on, you will fly to your base.",
+        Callback = function()
+            Window:Dialog({
+                Title = "Fly to Your Base",
+                Content = "Are you sure you want to add the Fly to your base button to your button gui?",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                           
+		local ReplicatedStorage = game:GetService("ReplicatedStorage")
+		local TweenService = game:GetService("TweenService")
+		local Players = game:GetService("Players")
+		local RunService = game:GetService("RunService")
+		local Workspace = game:GetService("Workspace")
+
+		local player = Players.LocalPlayer
+
+		local InterfaceController = require(ReplicatedStorage.Controllers.InterfaceController)
+		local CameraController = require(ReplicatedStorage.Controllers.CameraController)
+		local GameController = require(ReplicatedStorage.Controllers.GameController)
+		local PlotController = require(ReplicatedStorage.Controllers.PlotController)
+		local NotificationController = require(ReplicatedStorage.Controllers.NotificationController)
+		local AnimatedButton = require(ReplicatedStorage.Classes.AnimatedButton)
+		NotificationController.Error(nil, "Please bear in mind that this will break your Shop, Rebirth, and Index until we find a fix for this!")
+		-- GUI parent and existing Shop button for cloning
+		local mainGui = player:WaitForChild("PlayerGui"):WaitForChild("LeftCenter")
+		local leftCenter = mainGui:WaitForChild("LeftCenter")
+		local buttonsFolder = leftCenter:WaitForChild("Buttons")
+		local shopButton = buttonsFolder:WaitForChild("Shop")
+
+		-- Create Steal Exploit button by cloning Shop button
+		local StealExploit = shopButton:Clone()
+		StealExploit.Name = "StealExploit"
+		StealExploit.Parent = buttonsFolder
+
+		-- Customize appearance
+		StealExploit.ImageColor3 = Color3.new(1, 0, 0.015)  -- bright red tint
+
+		-- Change the icon image and size
+		local icon = StealExploit:FindFirstChild("Icon")
+		if icon and icon:IsA("ImageLabel") then
+			icon.Image = "rbxassetid://86603609994344"
+			icon.Size = UDim2.new(2.8, 0, 3.5, 0) -- your custom size
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.Position = UDim2.new(0.5, 0, 0.42, 0)
+		end
+
+		-- Change the text label
+		local txt = StealExploit:FindFirstChild("Txt")
+		if txt and txt:IsA("TextLabel") then
+			txt.Text = "Steal Exploit"
+		end
+
+		-- Variables for fly logic
+		local moveSpeed = 425
+		local flyHeight = 15
+
+		local char, hrp, humanoid
+		local conn, bp
+		local enabled = false
+
+		-- Tween animations for HUD open/close on leftCenter frame
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quint)
+		local tweenHide = TweenService:Create(leftCenter, tweenInfo, {
+			Position = UDim2.fromScale(leftCenter.Position.X.Scale - 1, leftCenter.Position.Y.Scale)
+		})
+		local tweenShow = TweenService:Create(leftCenter, tweenInfo, {
+			Position = leftCenter.Position
+		})
+
+		-- Get or register Hud interface safely
+		local hudInterface = InterfaceController:Get("Hud")
+		if not hudInterface then
+			hudInterface = InterfaceController:Register("Hud", leftCenter, "Custom")
+		end
+		assert(hudInterface, "Failed to get or create Hud interface")
+
+		-- Connect Hud open/close events for tween and camera
+		hudInterface.OnOpen:Connect(function()
+			CameraController:Blur(0, 0.5)
+			CameraController:Fov(CameraController:GetDefaultFov(), 0.5)
+			tweenShow:Play()
+		end)
+		hudInterface.OnClose:Connect(function()
+			tweenHide:Play()
+		end)
+		hudInterface:Close()
+
+		-- Open HUD on game loaded
+		GameController:OnGameLoaded(function()
+			hudInterface:Toggle(true)
+		end)
+
+		-- Animate all buttons inside Buttons folder (including StealExploit)
+		for _, btn in pairs(buttonsFolder:GetChildren()) do
+			if btn:IsA("GuiButton") then
+				local animBtn = AnimatedButton.new(btn)
+				animBtn:Animate()
+				animBtn.OnActivated:Connect(function()
+					InterfaceController:Toggle(btn.Name)
+				end)
+			end
+		end
+
+		-- Functions for flying logic
+
+		local function cleanupFlying()
+			if conn then conn:Disconnect() conn = nil end
+			if bp and bp.Parent then bp:Destroy() bp = nil end
+			if humanoid then humanoid.PlatformStand = false end
+		end
+
+		local function flyTo(pos, stopDist, onArrive)
+			cleanupFlying()
+			if not humanoid or not hrp then return end
+			humanoid.PlatformStand = true
+			bp = Instance.new("BodyPosition")
+			bp.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+			bp.P, bp.D = 3000, 500
+			bp.Position = hrp.Position
+			bp.Parent = hrp
+
+			conn = RunService.Heartbeat:Connect(function(dt)
+				local dir = pos - hrp.Position
+				if dir.Magnitude < stopDist then
+					cleanupFlying()
+					if onArrive then onArrive() end
+					return
+				end
+				bp.Position = hrp.Position + dir.Unit * math.min(moveSpeed * dt, dir.Magnitude)
+			end)
+		end
+
+		local function getNearestEnemyPlot()
+			local myPlot = PlotController:GetMyPlot()
+			if not myPlot or not myPlot.PlotModel then return nil end
+
+			local nearestPlot, nearestDist = nil, math.huge
+			for _, plot in ipairs(Workspace.Plots:GetChildren()) do
+				if plot:IsA("Model") and plot ~= myPlot.PlotModel then
+					local spawn = plot:FindFirstChild("Spawn")
+					if spawn then
+						local dist = (hrp.Position - spawn.Position).Magnitude
+						if dist < nearestDist then
+							nearestDist = dist
+							nearestPlot = plot
+						end
+					end
+				end
+			end
+			return nearestPlot
+		end
+
+		local function startStealing()
+			local myPlot = PlotController:GetMyPlot()
+			if not myPlot or not myPlot.PlotModel then return end
+			local deliveryHitbox = myPlot.PlotModel:FindFirstChild("DeliveryHitbox")
+			if not deliveryHitbox then return end
+
+			local enemyPlot = getNearestEnemyPlot()
+			if enemyPlot then
+				local spawn = enemyPlot:FindFirstChild("Spawn")
+				if spawn then
+					flyTo(spawn.Position, 6, function()
+						flyTo(Vector3.new(deliveryHitbox.Position.X, deliveryHitbox.Position.Y + flyHeight, deliveryHitbox.Position.Z), 3)
+					end)
+				end
+			end
+		end
+
+		local function updateToggleUI()
+			local txtLabel = StealExploit:FindFirstChild("Txt")
+			if txtLabel then
+				txtLabel.TextColor3 = enabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+			end
+		end
+
+		local function checkAutoSteal()
+			if enabled and player:GetAttribute("Stealing") then
+				startStealing()
+			else
+				cleanupFlying()
+			end
+		end
+
+		StealExploit.MouseButton1Click:Connect(function()
+			enabled = not enabled
+			updateToggleUI()
+
+			if enabled then
+				NotificationController.Success(nil, "Stealing Exploit is enabled!")
+				checkAutoSteal()
+			else
+				NotificationController.Error(nil, "Stealing Exploit is disabled!")
+				cleanupFlying()
+			end
+		end)
+
+		StealExploit.MouseButton2Click:Connect(function()
+			hudInterface:Toggle()
+		end)
+
+		player:GetAttributeChangedSignal("Stealing"):Connect(function()
+			if enabled then
+				if player:GetAttribute("Stealing") then
+					startStealing()
+				else
+					cleanupFlying()
+				end
+			end
+		end)
+
+		player.CharacterAdded:Connect(function(character)
+			char = character
+			hrp = char:WaitForChild("HumanoidRootPart")
+			humanoid = char:WaitForChild("Humanoid")
+			cleanupFlying()
+			updateToggleUI()
+
+			if enabled and player:GetAttribute("Stealing") then
+				startStealing()
+			end
+
+			if humanoid then
+				humanoid.Died:Connect(function()
+					cleanupFlying()
+					NotificationController.Error(nil, "You died, process stopped.")
+					enabled = false
+					updateToggleUI()
+				end)
+			end
+		end)
+
+		if player.Character then
+			char = player.Character
+			hrp = char:WaitForChild("HumanoidRootPart")
+			humanoid = char:WaitForChild("Humanoid")
+		end
+
+		updateToggleUI()
+		wait (10)
+		NotificationController.Error(nil, "Btw, the anti cheat has a 67% chance detecting it unless your lagging and makes you teleport back and back then make you reset. (TUFF)")
+
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+
+
+    --[[local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Toggle", Default = false })
+
+    Toggle:OnChanged(function()
+        print("Toggle changed:", Options.MyToggle.Value)
+    end)
+
+    Options.MyToggle:SetValue(false)]]
+
+    local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local boostMultiplier = 3.0
+local baseSpeed = 16
+local velocity = nil
+
+-- UI Toggle Setup (assuming your UI library provides this)
+local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Speed Boost", Default = false})
+
+Toggle:OnChanged(function(enabled)
+    print("Speed toggle changed:", enabled)
+end)
+
+Options.MyToggle:SetValue(false)
+
+
+
+-- Speed boost logic using toggle
+RunService:BindToRenderStep("SpeedBoostControl", Enum.RenderPriority.Character.Value, function()
+    local character = player.Character
+    if not character or not character.Parent then return end
+
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+    if not rootPart or not humanoid then return end
+
+    local speedBoost = Options.MyToggle.Value
+
+    if speedBoost then
+        local moveDir = humanoid.MoveDirection
+        if moveDir.Magnitude > 0 then
+            if not velocity then
+                velocity = Instance.new("BodyVelocity")
+                velocity.MaxForce = Vector3.new(1e5, 0, 1e5)
+                velocity.P = 1250
+                velocity.Velocity = Vector3.zero
+                velocity.Name = "SpeedBoostVelocity"
+                velocity.Parent = rootPart
+            end
+
+            moveDir = moveDir.Unit * (baseSpeed * boostMultiplier)
+            velocity.Velocity = Vector3.new(moveDir.X, 0, moveDir.Z)
+        else
+            if velocity then
+                velocity.Velocity = Vector3.zero
+            end
+        end
+    else
+        if velocity then
+            velocity:Destroy()
+            velocity = nil
+        end
+    end
+end)
+
+-- Load animal data
+local animalData = require(game.ReplicatedStorage.Datas.Animals)
+
+-- ESP logic
+local function esp(enabled)
+	for _, v in pairs(workspace:GetChildren()) do
+		for name, data in pairs(animalData) do
+			if v.Name == name and data then
+				-- Clear old highlights
+				local existingHighlight = v:FindFirstChildWhichIsA("Highlight")
+				if existingHighlight then
+					existingHighlight:Destroy()
+				end
+
+				-- Add new highlight if toggle is enabled
+				if enabled and (data.Rarity == "Brainrot God" or data.Rarity == "Secret") then
+					local highlight = Instance.new("Highlight")
+					highlight.Name = "AnimalESP"
+					highlight.Adornee = v
+					highlight.Parent = v
+
+					if data.Rarity == "Secret" then
+						highlight.FillColor = Color3.fromRGB(38, 38, 38)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- UI Toggle
+local EspBrainrot = Tabs.Brainrots:AddToggle("EspBrainrot", {
+	Title = "Brainrot ESP",
+	Default = false
+})
+
+EspBrainrot:OnChanged(function(enabled)
+	print("Brainrot ESP Toggle:", enabled)
+	esp(enabled)
+end)
+
+Options.EspBrainrot:SetValue(false)
+
+
+    
+    local Slider = Tabs.Main:AddSlider("Slider", {
+        Title = "Jump Power",
+        Description = "Set your jump power to your desired value",
+        Default = 50,
+        Min = 0,
+        Max = 200,
+        Rounding = 1,
+        Callback = function(Value)
+            game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+        end
+    })
+
+    Slider:OnChanged(function(Value)
+        print("Slider changed:", Value)
+    end)
+
+    Slider:SetValue(50)
+
+
+
+ 
+end
+
+
+-- Addons:
+-- SaveManager (Allows you to have a configuration system)
+-- InterfaceManager (Allows you to have a interface managment system)
+
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+-- Ignore keys that are used by ThemeManager.
+-- (we dont want configs to save themes, do we?)
+SaveManager:IgnoreThemeSettings()
+
+-- You can add indexes of elements the save manager should ignore
+SaveManager:SetIgnoreIndexes({})
+
+-- use case for doing it this way:
+-- a script hub could have themes in a global folder
+-- and game configs in a separate folder per game
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+
+Window:SelectTab(1)
+
+SaveManager:LoadAutoloadConfig()
