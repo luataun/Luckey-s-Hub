@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+
+local targetName = "Noobini Pizzanini"
+local searchFolder = workspace:WaitForChild("MovingAnimals")
+
+local walking = false
+
+-- Helper to find target
+local function findTarget()
+	for _, model in pairs(searchFolder:GetChildren()) do
+		if model:IsA("Model") and model:GetAttribute("Index") == targetName then
+			local hrp = model:FindFirstChild("HumanoidRootPart")
+			local promptAttachment = hrp and hrp:FindFirstChild("PromptAttachment")
+			local prompt = promptAttachment and promptAttachment:FindFirstChildWhichIsA("ProximityPrompt")
+			if prompt then
+				return model, hrp, prompt
+			end
+		end
+	end
+	return nil
+end
+
+-- Helper to trigger prompt
+local function triggerPrompt(prompt)
+	if prompt and prompt:IsA("ProximityPrompt") then
+		prompt.HoldDuration = 0
+		pcall(function()
+			fireproximityprompt(prompt)
+		end)
+	end
+end
+
+-- Main loop
+RunService.RenderStepped:Connect(function()
+	if walking then return end
+
+	local targetModel, targetHRP, prompt = findTarget()
+	if not (targetModel and targetHRP and prompt) then return end
+
+	local dist = (root.Position - targetHRP.Position).Magnitude
+	if dist > 5 then
+		walking = true
+		humanoid:MoveTo(targetHRP.Position)
+
+		-- Wait until arrived or timeout
+		local reached = false
+		local conn
+		conn = humanoid.MoveToFinished:Connect(function(success)
+			if conn then conn:Disconnect() end
+			reached = success
+		end)
+
+		local timeout = 5
+		local startTime = tick()
+		repeat task.wait() until reached or (tick() - startTime > timeout)
+
+		walking = false
+	end
+
+	-- Trigger if in range
+	if (root.Position - targetHRP.Position).Magnitude <= prompt.MaxActivationDistance then
+		triggerPrompt(prompt)
+	end
+end)
