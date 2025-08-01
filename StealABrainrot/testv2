@@ -1,4 +1,6 @@
-	-- CYBR MADE THIS SHIT
+	-- Anti Cheat Bypasses
+local HttpService = game:GetService("HttpService")
+    -- Below: Credits to cybr | hahacybr
 local cloneFlag = {}
 
 function p(o)
@@ -508,6 +510,9 @@ do
     Options.MyToggle:SetValue(false)]]
 
     local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
 
 local boostMultiplier = 3.0
@@ -594,6 +599,101 @@ local function esp(enabled)
 end
 
 -- UI Toggle
+
+local SkibidiWebhook
+
+ local Input = Tabs.Brainrots:AddInput("Input", {
+        Title = "Discord Webhook",
+        Default = "",
+        Placeholder = "Put your discord webhook in to alert you when a monitored brainrot spawns",
+        Numeric = false, 
+        Finished = false,
+        Callback = function(Value)
+            SkibidiWebhook = Value
+            print(SkibidiWebhook)
+        end
+    })
+
+
+  local AnimalsModule = require(game.ReplicatedStorage.Datas.Animals)
+local RenderedAnimalsFolder = workspace:WaitForChild("RenderedMovingAnimals")
+local function MonitoredBrainrotSpawned(url, animalName)
+	if not url then return end
+	local data = {
+		content = "||@here|| **[MONITORED]** A **" .. animalName .. "** has spawned!"
+	}
+	local body = HttpService:JSONEncode(data)
+
+	local success, err = pcall(function()
+		request({
+			Url = url,
+			Method = "POST",
+			Headers = {["Content-Type"] = "application/json"},
+			Body = body,
+		})
+	end)
+
+	if success then
+		print("[LUATAUN]: Message sent for", animalName)
+	else
+		warn("[LUATAUN]: Failed to send message:", err)
+	end
+end
+
+
+-- Gather all animal names
+local animalNames = {}
+for name, _ in pairs(AnimalsModule) do
+	table.insert(animalNames, name)
+end
+table.sort(animalNames)
+
+-- Monitored animals table
+local selectedAnimals = {}
+
+-- Fluent Dropdown UI
+local AnimalDropdown = Tabs.Brainrots:AddDropdown("MonitoredAnimals", {
+	Title = "Monitored Brainrots",
+	Description = "Select brainrot names to alert on spawn.",
+	Values = animalNames,
+	Multi = true,
+	Default = {},
+})
+
+-- Allow dynamic value setting (optional, can pre-select specific animals)
+AnimalDropdown:SetValue({})
+
+-- Listen for user selection
+AnimalDropdown:OnChanged(function(Value)
+	selectedAnimals = {} -- reset first
+	for animalName, state in next, Value do
+		if state then
+			selectedAnimals[animalName] = true
+		end
+	end
+    print("wow we montiroringggggg uhj fidk")
+end)
+
+-- Spawn detection and webhook trigger
+local alreadyAlerted = {}
+
+RenderedAnimalsFolder.ChildAdded:Connect(function(model)
+	task.wait(0.1)
+	local modelName = model.Name
+
+	if selectedAnimals[modelName] and not alreadyAlerted[model] then
+		alreadyAlerted[model] = true
+           Fluent:Notify({
+        Title = "Brainrot",
+        Content = modelName .. " has spawned!",
+        SubContent = "You are currently monitoring this brainrot.", -- Optional
+        Duration = nil -- Set to nil to make the notification not disappear
+    })
+   MonitoredBrainrotSpawned(SkibidiWebhook, modelName)
+	end
+end)
+
+
 local EspBrainrot = Tabs.Brainrots:AddToggle("EspBrainrot", {
 	Title = "Brainrot ESP",
 	Default = false
@@ -606,6 +706,68 @@ end)
 
 Options.EspBrainrot:SetValue(false)
 
+local AutoBuyEnabled = false
+local walking = false
+local AutoBuy = Tabs.Brainrots:AddToggle("AutoBuy", {Title = "Auto Buy Monitored Brainrots", Default = false})
+
+AutoBuy:OnChanged(function(enabled)
+   AutoBuyEnabled = enabled
+      if enabled then
+        print("Auto-buy is enabled.")
+        
+    else
+        print("Auto-buy is disabled.")
+    end
+end)
+
+Options.AutoBuy:SetValue(false)
+
+RunService.RenderStepped:Connect(function()
+    if not AutoBuyEnabled or walking then return end
+
+    for _, model in pairs(RenderedAnimalsFolder:GetChildren()) do
+        local modelName = model.Name
+        if selectedAnimals[modelName] and not alreadyAlerted[model] then
+            local hrp = model:FindFirstChild("HumanoidRootPart")
+            local prompt = hrp and hrp:FindFirstChild("PromptAttachment")
+            prompt = prompt and prompt:FindFirstChildWhichIsA("ProximityPrompt")
+
+            if hrp and prompt then
+                walking = true
+
+                task.spawn(function()
+                    humanoid:MoveTo(hrp.Position)
+
+                    local reached = false
+                    local conn
+                    conn = humanoid.MoveToFinished:Connect(function(success)
+                        if conn then conn:Disconnect() end
+                        reached = success
+                    end)
+
+                    local timeout = 5
+                    local startTime = tick()
+                    repeat task.wait() until reached or (tick() - startTime > timeout)
+
+                    if (root.Position - hrp.Position).Magnitude <= prompt.MaxActivationDistance then
+                        alreadyAlerted[model] = true
+                        triggerPrompt(prompt)
+
+                        Fluent:Notify({
+                            Title = "Auto Bought Brainrot",
+                            Content = modelName .. " was auto-purchased.",
+                            Duration = 15
+                        })
+                    end
+
+                    walking = false
+                end)
+
+                break -- only handle one at a time
+            end
+        end
+    end
+end)
 
     
     local Slider = Tabs.Main:AddSlider("Slider", {
