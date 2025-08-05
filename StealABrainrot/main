@@ -2,7 +2,7 @@ local HttpService = game:GetService("HttpService")
 
 -- Validate script_key
 if not script_key then
-    return
+    return game.Players.LocalPlayer:Kick("no key :( ")
 end
 
 local request = http_request or request or (syn and syn.request)
