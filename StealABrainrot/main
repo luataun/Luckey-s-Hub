@@ -1,0 +1,39 @@
+local HttpService = game:GetService("HttpService")
+
+-- Validate script_key
+if not script_key then
+    return
+end
+
+local request = http_request or request or (syn and syn.request)
+if not request then
+    return game.Players.LocalPlayer:Kick("Executor does not support HTTP requests, rip :( ")
+end
+
+local url = "https://work.ink/_api/v2/token/isValid/" .. script_key
+
+local response
+local success, err = pcall(function()
+    response = request({
+        Url = url,
+        Method = "GET"
+    })
+end)
+
+if not success or not response then
+    return game.Players.LocalPlayer:Kick("Failed to contact token server.")
+end
+
+local data
+pcall(function()
+    data = HttpService:JSONDecode(response.Body)
+end)
+
+if not (data and data.valid) then
+    return game.Players.LocalPlayer:Kick("Invalid or expired token.")
+end
+
+print("[LUATAUN]: Key is valid. Loading hub...")
+
+-- Load the real hub
+loadstring(game:HttpGet("https://raw.githubusercontent.com/luataun/Luckey-s-Hub/refs/heads/main/StealABrainrot/testv2"))()
